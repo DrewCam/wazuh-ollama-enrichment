@@ -1,0 +1,32 @@
+# Ollama LLM Alert Enrichment - Runtime Configuration
+# Copy this file to /var/ossec/etc/ollama-enrichment.conf
+# and adjust the values for your environment.
+#
+# This file carries the script's runtime settings that should NOT
+# live in ossec.conf (indexer credentials and TLS options).
+# Wazuh integration wiring (Ollama URL, model, alert threshold)
+# lives in the <integration> block in /var/ossec/etc/ossec.conf.
+#
+# The deploy script creates this file automatically. If deploying
+# manually, copy and edit:
+#
+#   sudo cp ollama-enrichment.conf.example /var/ossec/etc/ollama-enrichment.conf
+#   sudo chown root:wazuh /var/ossec/etc/ollama-enrichment.conf
+#   sudo chmod 640 /var/ossec/etc/ollama-enrichment.conf
+
+# --- Wazuh Indexer (OpenSearch) ---
+indexer_url=https://127.0.0.1:9200
+indexer_user=admin
+indexer_pass=admin
+
+# TLS verification for the indexer connection.
+# The script defaults to verifying the certificate (secure by default).
+# The Wazuh OVA ships with self-signed certs, so set this to 'false'
+# when deploying against the OVA. In production with a valid CA-signed
+# certificate, leave this as 'true'.
+indexer_verify_tls=false
+
+# Optional path to a CA bundle (PEM). Use this with indexer_verify_tls=true
+# when the indexer presents a certificate signed by an internal CA.
+# Leave commented to use the system CA store.
+#indexer_ca_path=/etc/pki/ca-trust/source/anchors/internal-ca.pem

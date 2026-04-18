@@ -1,0 +1,54 @@
+#!/bin/bash
+# wazuh-watch - launch or attach to the four-pane Wazuh monitoring dashboard
+#
+# Layout:
+#   +-------------------------------+--------------------------------+
+#   |  ollama-enrichment.log        |  alerts.json (level 10+)       |
+#   |  (audit log of every          |  (live high-severity alerts    |
+#   |   enrichment attempt)         |   firing on the manager)       |
+#   +-------------------------------+--------------------------------+
+#   |  watch wazuh-info             |  ossec.log (ollama lines)      |
+#   |  (system + Wazuh stats        |  (integratord script           |
+#   |   refreshing every 2s)        |   invocations + errors)        |
+#   +-------------------------------+--------------------------------+
+#
+# Usage:
+#   sudo wazuh-watch          # attach if running, otherwise create
+#   sudo wazuh-watch --reset  # kill any existing session and start fresh
+#
+# Detach without killing: Ctrl-B then D
+# Reattach later:         sudo wazuh-watch
+# Kill the session:       sudo tmux kill-session -t wazuh
+
+set -e
+
+SESSION="wazuh"
+
+# Pre-flight: tmux must be installed
+if ! command -v tmux >/dev/null 2>&1; then
+    echo "tmux not found. Install with: sudo dnf install -y tmux" >&2
+    exit 1
+fi
+
+# Optional reset flag
+if [ "${1:-}" = "--reset" ]; then
+    tmux kill-session -t "$SESSION" 2>/dev/null || true
+fi
+
+# If a session already exists, just attach to it
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+    exec tmux attach -t "$SESSION"
+fi
+
+# Otherwise build the four-pane layout from scratch
+tmux new-session -d -s "$SESSION" \; \
+    send-keys 'tail -f /var/ossec/logs/ollama-enrichment.log' C-m \; \
+    split-window -h \; \
+    send-keys 'tail -f /var/ossec/logs/alerts/alerts.json | grep --line-buffered "\"level\":1[0-9]"' C-m \; \
+    split-window -v \; \
+    send-keys 'tail -f /var/ossec/logs/ossec.log | grep -i --line-buffered ollama' C-m \; \
+    select-pane -t 0 \; \
+    split-window -v \; \
+    send-keys 'watch --color -n 2 wazuh-info' C-m
+
+exec tmux attach -t "$SESSION"

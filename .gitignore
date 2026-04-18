@@ -1,0 +1,14 @@
+# Config file contains indexer credentials — never commit
+ollama-enrichment.conf
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

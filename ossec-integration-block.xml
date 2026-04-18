@@ -1,0 +1,44 @@
+<!-- ==========================================================
+     Ollama LLM Alert Enrichment Integration
+     Add this block inside <ossec_config> in /var/ossec/etc/ossec.conf
+
+     Enrichment is written directly to the original alert document
+     in the Wazuh Indexer. No localfile monitor is required.
+
+     Before adding this block, update the values below:
+
+       <hook_url>   Set to your Ollama host address and port.
+                    Use http://localhost:11434 if Ollama runs on
+                    the same machine as the Wazuh server.
+                    Use http://<OLLAMA_HOST_IP>:11434 if Ollama
+                    runs on a separate machine.
+
+       <api_key>    LLM model selector. Format: model:<name>.
+                    Examples: model:qwen3.5:9b, model:gemma4:e4b,
+                    model:ministral-3:14b. If this line is omitted
+                    or the 'model:' prefix is missing, the script
+                    defaults to qwen3.5:9b.
+
+       <level>      Minimum alert severity to enrich.
+                    10 is recommended as a starting point.
+                    Lower values increase alert volume significantly
+                    and may saturate the enrichment queue.
+
+     Script runtime config that does NOT belong in ossec.conf
+     (indexer credentials, TLS verification, optional CA path)
+     lives in /var/ossec/etc/ollama-enrichment.conf. See
+     ollama-enrichment.conf.example in the repo.
+
+     The script calls Ollama's /api/generate endpoint with
+     think=false. Endpoint benchmarking confirmed this is 3-6x
+     faster than /api/chat for thinking-capable models while
+     producing equivalent quality output.
+     ========================================================== -->
+
+<integration>
+  <name>custom-ollama-enrichment</name>
+  <hook_url>http://OLLAMA_HOST_IP:11434</hook_url>
+  <api_key>model:qwen3.5:9b</api_key>
+  <level>10</level>
+  <alert_format>json</alert_format>
+</integration>

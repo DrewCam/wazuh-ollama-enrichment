@@ -1,0 +1,20 @@
+#!/bin/sh
+# Wazuh custom integration: Ollama LLM alert enrichment
+# Shell wrapper that invokes the Python script using Wazuh's bundled Python.
+# This file must be named without .py extension for Wazuh to recognise it.
+
+WAZUH_PYTHON_BIN="framework/python/bin/python3"
+SCRIPT_PATH="$0"
+SCRIPT_DIR="$(cd $(dirname ${SCRIPT_PATH}); pwd -P)"
+SCRIPT_NAME="$(basename ${SCRIPT_PATH})"
+
+case ${SCRIPT_DIR} in
+    */integrations)
+        if [ -z "${WAZUH_PATH}" ]; then
+            WAZUH_PATH="$(cd ${SCRIPT_DIR}/..; pwd)"
+        fi
+        PYTHON_SCRIPT="${SCRIPT_DIR}/${SCRIPT_NAME}.py"
+        ;;
+esac
+
+${WAZUH_PATH}/${WAZUH_PYTHON_BIN} ${PYTHON_SCRIPT} "$@"
